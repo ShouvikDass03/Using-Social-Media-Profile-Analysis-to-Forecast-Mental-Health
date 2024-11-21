@@ -8,6 +8,9 @@ from nltk.stem.porter import PorterStemmer
 import random
 
 
+nltk.download('punkt_tab')
+nltk.download('stopwords')
+
 client_id = st.secrets["client_id"]
 client_secret = st.secrets["client_secret"]
 user_agent = st.secrets["user_agent"]
