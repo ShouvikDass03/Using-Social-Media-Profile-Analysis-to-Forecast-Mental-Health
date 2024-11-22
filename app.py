@@ -95,12 +95,13 @@ if st.button('Fetch and Predict from Reddit'):
         if random_post:
             # Combine title and selftext for classification
             post_content = random_post.title + " " + random_post.selftext
-
+            post_url = f"https://www.reddit.com{random_post.permalink}"
             # Display post content, author, and subreddit
             st.write("### Reddit Post Details:")
             st.write(f"**Subreddit**: r/{random_post.subreddit}")
             st.write(f"**Author**: u/{random_post.author}")
             st.write(f"**Content**: {post_content}")
+            st.write(f"**Link**: [View Post]({post_url})")  # Hyperlink to the Reddit post
 
             # Preprocess and classify
             transformed_post = transform_text(post_content)
