@@ -56,21 +56,11 @@ reddit = praw.Reddit(
     user_agent=user_agent
 )
 
-st.title("Suicide Ideation Detection")
+st.title("Social media profile for predicting the Psychological State")
 
 # Input area for manual text
 input_sms = st.text_area("Enter the message manually:")
 
-# Prediction for manual input
-if st.button('Predict'):
-    transformed_sms = transform_text(input_sms)  # Preprocess
-    vector_input = tfidf.transform([transformed_sms])  # Vectorize
-    result = model.predict(vector_input.toarray())[0]  # Predict
-
-    if result == 1:
-        st.header("Suicidal Post")
-    else:
-        st.header("Non-suicidal Post")
 
 # Input for subreddit name
 subreddit_name = st.text_input("Enter subreddit name (default: 'random')", value='random')
