@@ -58,9 +58,6 @@ reddit = praw.Reddit(
 
 st.title("Social media profile for predicting the Psychological State")
 
-# Input area for manual text
-input_sms = st.text_area("Enter the message manually:")
-
 
 # Input for subreddit name
 subreddit_name = st.text_input("Enter subreddit name (default: 'random')", value='random')
