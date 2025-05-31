@@ -49,7 +49,7 @@ if not subreddit_name.isalnum():
 if st.button('Fetch and Predict from Reddit'):
     try:
         subreddit = reddit.subreddit(subreddit_name)
-        subreddit.id  # Validates subreddit
+        _ = subreddit.id  # Validates subreddit
 
         random_post = None
         try:
@@ -58,7 +58,7 @@ if st.button('Fetch and Predict from Reddit'):
             pass  # silently fall back
 
         if random_post is None:
-            posts = list(subreddit.hot(limit=10))
+            posts = list(subreddit.hot(limit=20))
             if posts:
                 random_post = random.choice(posts)
             else:
