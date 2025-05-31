@@ -8,7 +8,7 @@ from nltk.stem.porter import PorterStemmer
 import random
 
 # Downloads
-nltk.download('punkt')
+nltk.download('punkt_tab')
 nltk.download('stopwords')
 
 # Load secrets
