@@ -40,22 +40,23 @@ reddit = praw.Reddit(
 st.title("Social Media Profile for Predicting the Psychological State")
 
 # Input
-subreddit_name = st.text_input("Enter subreddit name", value='AskReddit')
+subreddit_name = st.text_input("Enter subreddit name", value='AskReddit').strip().replace(" ", "")
+
+if not subreddit_name.isalnum():
+    st.error("Subreddit name must contain only letters and numbers.")
+    st.stop()
 
 if st.button('Fetch and Predict from Reddit'):
-    subreddit_name = subreddit_name.strip().replace(" ", "")
     try:
         subreddit = reddit.subreddit(subreddit_name)
-        subreddit.id  # Validate subreddit exists
+        subreddit.id  # Validates subreddit
 
-        # Try fetching a random post
         random_post = None
         try:
             random_post = subreddit.random()
         except:
-            st.warning(f"`random()` failed for r/{subreddit_name}. Falling back to hot posts.")
+            pass  # silently fall back
 
-        # If random fails or returns None
         if random_post is None:
             posts = list(subreddit.hot(limit=10))
             if posts:
