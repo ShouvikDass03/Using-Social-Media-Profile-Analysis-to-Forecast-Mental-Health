@@ -58,6 +58,19 @@ with st.container():
         try:
             subreddit = reddit.subreddit(subreddit_name)
             _ = subreddit.id
+            random_post = None
+            try:
+                random_post = subreddit.random()
+            except:
+                pass
+
+            if random_post is None:
+                posts = list(subreddit.hot(limit=20))
+                if posts:
+                    random_post = random.choice(posts)
+                else:
+                    st.error(f"No posts found in r/{subreddit_name}. Try another subreddit.")
+                    st.stop()
             random_post = subreddit.random() or random.choice(list(subreddit.hot(limit=20)))
             post_content = random_post.title + " " + random_post.selftext
             st.write(f"**Subreddit**: r/{random_post.subreddit}")
