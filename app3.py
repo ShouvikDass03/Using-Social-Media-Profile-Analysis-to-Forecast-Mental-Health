@@ -25,6 +25,24 @@ st.set_page_config(
 nltk.download('stopwords')
 nltk.download('punkt_tab')
 
+# Helper function to display post and result consistently
+def display_post_and_result(post_data):
+    st.markdown("<div class='post-box'>", unsafe_allow_html=True)
+    st.markdown(f"<div class='post-title'>📝 {post_data['title']}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='post-content'>{post_data['content']}</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    if 'risk_result' in post_data:
+        result = post_data['risk_result']
+        result_color = "red" if result == 1 else "green"
+        result_text = "🚨 High Risk Indicators Detected" if result == 1 else "✅ No Significant Risk Detected"
+        
+        st.markdown(f"""
+        <div class="result-box" style="background-color: {'#ffe6e6' if result == 1 else '#e6ffe6'}">
+            <h3 style="color: {result_color}; text-align: center;">{result_text}</h3>
+        </div>
+        """, unsafe_allow_html=True)
+
 # Secrets and Device Setup
 device = "cpu"  # We'll stick with CPU for now
 client_id = st.secrets["client_id"]
@@ -514,21 +532,3 @@ with right_col:
                 st.markdown("Unable to fetch user image")
         
         st.markdown("</div>", unsafe_allow_html=True)
-
-# Helper function to display post and result consistently
-def display_post_and_result(post_data):
-    st.markdown("<div class='post-box'>", unsafe_allow_html=True)
-    st.markdown(f"<div class='post-title'>📝 {post_data['title']}</div>", unsafe_allow_html=True)
-    st.markdown(f"<div class='post-content'>{post_data['content']}</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    if 'risk_result' in post_data:
-        result = post_data['risk_result']
-        result_color = "red" if result == 1 else "green"
-        result_text = "🚨 High Risk Indicators Detected" if result == 1 else "✅ No Significant Risk Detected"
-        
-        st.markdown(f"""
-        <div class="result-box" style="background-color: {'#ffe6e6' if result == 1 else '#e6ffe6'}">
-            <h3 style="color: {result_color}; text-align: center;">{result_text}</h3>
-        </div>
-        """, unsafe_allow_html=True)
