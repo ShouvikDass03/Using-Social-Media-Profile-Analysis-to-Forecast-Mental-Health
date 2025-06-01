@@ -375,12 +375,12 @@ with left_col:
 with middle_col:
     # Subreddit Analysis Section
     st.markdown('<div class="section-title">🔍 Subreddit Post Analysis</div>', unsafe_allow_html=True)
-    subreddit_name = st.text_input("Enter subreddit name", value=None, key='subreddit_input').strip().replace(" ", "")
+    subreddit_name = st.text_input("Enter subreddit name", value='random', key='subreddit_input').strip().replace(" ", "")
     analyze_button = st.button('Fetch and predict')
 
     if analyze_button:
         try:
-            if not subreddit_name:
+            if subreddit_name == 'random':
                 subreddit = reddit.random_subreddit()
                 subreddit_name = subreddit.display_name
             else:
