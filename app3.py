@@ -15,7 +15,7 @@ from torch import nn
 
 # Page Configuration
 st.set_page_config(
-    page_title="Mental Health Analysis System",
+    page_title="Social Media Profile for Predicting the Psychological State",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -318,7 +318,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Main Layout
-st.markdown('<h1 class="title">Mental Health Analysis System</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="title">Social Media Profile for Predicting the Psychological State</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Analyzing Social Media Content for Mental Health Indicators</p>', unsafe_allow_html=True)
 
 # Create three columns with proper spacing
@@ -341,8 +341,7 @@ with left_col:
     ⚠️ This tool is for educational and research purposes only. It should not be used as a substitute for professional medical advice, diagnosis, or treatment.
     
     🏥 If you or someone you know is experiencing a mental health crisis:
-    - Call 988 (US Suicide & Crisis Lifeline)
-    - Text HOME to 741741 (Crisis Text Line)
+    - Call 9152987821 (National Suicide & Crisis Lifeline)
     - Seek immediate professional help
     </div>
     """, unsafe_allow_html=True)
@@ -355,7 +354,7 @@ with middle_col:
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        analyze_button = st.button('Analyze Random Post')
+        analyze_button = st.button('Fetch and predict from Reddit')
 
     if analyze_button:
         try:
