@@ -497,15 +497,20 @@ with middle_col:
             post_embeddings = embedder.encode(posts, convert_to_tensor=True)
             bdi_score = 0
             bdi_breakdown = []
+            SIMILARITY_THRESHOLD = 0.3  # Minimum similarity to consider a valid match
+            unmatched_questions = []
 
             for question, options in bdi_questions:
                 option_embeddings = embedder.encode(options, convert_to_tensor=True)
-                max_similarity = [0, 0, 0, 0]
-                for post_embed in post_embeddings:
-                    sims = util.cos_sim(post_embed, option_embeddings)[0]
-                    for i in range(4):
-                        max_similarity[i] = max(max_similarity[i], sims[i].item())
-                score = max(range(4), key=lambda i: max_similarity[i])
+                avg_similarities = torch.mean(util.cos_sim(post_embeddings, option_embeddings), dim=0)  # [4]
+
+                max_sim = torch.max(avg_similarities).item()
+                if max_sim < SIMILARITY_THRESHOLD:
+                    score = 0  # Not enough relevant content, assign neutral score
+                    unmatched_questions.append(question)
+                else:
+                    score = torch.argmax(avg_similarities).item()
+
                 bdi_score += score
                 bdi_breakdown.append((question, score))
 
@@ -553,6 +558,10 @@ with middle_col:
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+
+            if unmatched_questions:
+                with st.expander("Skipped BDI-II Questions (no relevant content found)"):
+                    st.write(", ".join(unmatched_questions))
 
         except Exception as e:
             st.error(f"Error analyzing user: {e}")
