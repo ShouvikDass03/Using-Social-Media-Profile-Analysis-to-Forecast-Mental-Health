@@ -29,6 +29,12 @@ nltk.download('punkt_tab')
 def display_post_and_result(post_data):
     st.markdown(f"<div class='post-title'>📝 {post_data['title']}</div>", unsafe_allow_html=True)
     st.markdown(f"<div class='post-content'>{post_data['content']}</div>", unsafe_allow_html=True)
+
+    content = post_data.get('content', '').strip()
+    
+    if not content or len(content) < 10:
+        st.warning("⚠️ Not enough text available to analyze this post.")
+        return
     
     if 'risk_result' in post_data:
         result = post_data['risk_result']
