@@ -27,8 +27,10 @@ nltk.download('punkt_tab')
 
 # Helper function to display post and result consistently
 def display_post_and_result(post_data):
+    st.markdown("<div class='post-box'>", unsafe_allow_html=True)
     st.markdown(f"<div class='post-title'>📝 {post_data['title']}</div>", unsafe_allow_html=True)
     st.markdown(f"<div class='post-content'>{post_data['content']}</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
     
     if 'risk_result' in post_data:
         result = post_data['risk_result']
@@ -261,13 +263,12 @@ st.markdown("""
             box-shadow: 0 4px 10px rgba(255, 75, 75, 0.3);
             background: linear-gradient(135deg, #FF3333 0%, #FF2929 100%);
         }
-        .stButton > button:active, .stButton > button:focus {
-            transform: translateY(0);
-            box-shadow: 0 2px 5px rgba(255, 75, 75, 0.2);
-            background: linear-gradient(135deg, #FF4B4B 0%, #FF3333 100%);
+        .stButton > button:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 3px rgba(255, 75, 75, 0.2);
+            background: linear-gradient(135deg, #E63939 0%, #E62D2D 100%);
         }
         .stButton > button:disabled {
-            background: linear-gradient(135deg, #FF4B4B 0%, #FF3333 100%);
             opacity: 0.7;
             cursor: not-allowed;
             transform: none;
@@ -537,6 +538,7 @@ with middle_col:
 with right_col:
     # Only show content if there's data to display
     if 'posts_data' in st.session_state and ('current_post' in st.session_state.posts_data or 'current_user' in st.session_state.posts_data):
+        st.markdown('<div class="block">', unsafe_allow_html=True)
         
         # Display subreddit info if available
         if 'current_post' in st.session_state.posts_data:
@@ -563,3 +565,4 @@ with right_col:
             except:
                 st.markdown("Unable to fetch user image")
         
+        st.markdown("</div>", unsafe_allow_html=True)
