@@ -380,7 +380,8 @@ with middle_col:
             st.session_state.posts_data['current_post'] = {
                 'subreddit': str(random_post.subreddit),
                 'author': str(random_post.author),
-                'content': post_content,
+                'content': random_post.selftext,
+                'title': random_post.title,
                 'url': f"https://www.reddit.com{random_post.permalink}"
             }
 
@@ -408,10 +409,8 @@ with middle_col:
     # Display existing post if available
     elif 'posts_data' in st.session_state and 'current_post' in st.session_state.posts_data:
         post = st.session_state.posts_data['current_post']
-        st.markdown("<div class='post-box'>", unsafe_allow_html=True)
-        st.markdown(f"<div class='post-title'>📝 Previous Analysis</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='post-title'>📝 {post['title']}</div>", unsafe_allow_html=True)
         st.markdown(f"<div class='post-content'>{post['content']}</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
     # BDI-II Analysis Section
     st.subheader("📊 User BDI-II Analysis")
@@ -498,7 +497,6 @@ with middle_col:
 with right_col:
     # Only show content if there's data to display
     if 'posts_data' in st.session_state and ('current_post' in st.session_state.posts_data or 'current_user' in st.session_state.posts_data):
-        st.markdown('<div class="block">', unsafe_allow_html=True)
         
         # Display subreddit info if available
         if 'current_post' in st.session_state.posts_data:
@@ -525,4 +523,3 @@ with right_col:
             except:
                 st.markdown("Unable to fetch user image")
         
-        st.markdown("</div>", unsafe_allow_html=True)
