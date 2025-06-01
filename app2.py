@@ -10,7 +10,7 @@ import random
 
 # Downloads
 nltk.download('stopwords')
-nltk.download('punkt')
+nltk.download('punkt_tab')
 
 # Secrets
 device = "cpu"
