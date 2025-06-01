@@ -27,10 +27,8 @@ nltk.download('punkt_tab')
 
 # Helper function to display post and result consistently
 def display_post_and_result(post_data):
-    st.markdown("<div class='post-box'>", unsafe_allow_html=True)
     st.markdown(f"<div class='post-title'>📝 {post_data['title']}</div>", unsafe_allow_html=True)
     st.markdown(f"<div class='post-content'>{post_data['content']}</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
     
     if 'risk_result' in post_data:
         result = post_data['risk_result']
@@ -504,7 +502,6 @@ with middle_col:
 with right_col:
     # Only show content if there's data to display
     if 'posts_data' in st.session_state and ('current_post' in st.session_state.posts_data or 'current_user' in st.session_state.posts_data):
-        st.markdown('<div class="block">', unsafe_allow_html=True)
         
         # Display subreddit info if available
         if 'current_post' in st.session_state.posts_data:
@@ -531,4 +528,3 @@ with right_col:
             except:
                 st.markdown("Unable to fetch user image")
         
-        st.markdown("</div>", unsafe_allow_html=True)
