@@ -373,8 +373,11 @@ with middle_col:
 
             post_content = random_post.title + " " + random_post.selftext
             
-            # Store post details for right column
-            st.session_state.current_post = {
+            # Store post details in session state
+            if 'posts_data' not in st.session_state:
+                st.session_state.posts_data = {}
+            
+            st.session_state.posts_data['current_post'] = {
                 'subreddit': str(random_post.subreddit),
                 'author': str(random_post.author),
                 'content': post_content,
@@ -404,6 +407,14 @@ with middle_col:
         except Exception as e:
             st.error(f"Error: {e}")
 
+    # Display existing post if available
+    elif 'posts_data' in st.session_state and 'current_post' in st.session_state.posts_data:
+        post = st.session_state.posts_data['current_post']
+        st.markdown("<div class='post-box'>", unsafe_allow_html=True)
+        st.markdown(f"<div class='post-title'>📝 Previous Analysis</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='post-content'>{post['content']}</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
     # BDI-II Analysis Section
     st.subheader("📊 User BDI-II Analysis")
     reddit_user = st.text_input("Enter Reddit username")
@@ -418,7 +429,9 @@ with middle_col:
                 st.stop()
 
             # Store user info for right column
-            st.session_state.current_user = reddit_user
+            if 'posts_data' not in st.session_state:
+                st.session_state.posts_data = {}
+            st.session_state.posts_data['current_user'] = reddit_user
 
             post_embeddings = embedder.encode(posts, convert_to_tensor=True)
             bdi_score = 0
@@ -486,12 +499,12 @@ with middle_col:
 # Right Column - Images and Additional Info
 with right_col:
     # Only show content if there's data to display
-    if 'current_post' in st.session_state or 'current_user' in st.session_state:
+    if 'posts_data' in st.session_state and ('current_post' in st.session_state.posts_data or 'current_user' in st.session_state.posts_data):
         st.markdown('<div class="block">', unsafe_allow_html=True)
         
         # Display subreddit info if available
-        if 'current_post' in st.session_state:
-            post = st.session_state.current_post
+        if 'current_post' in st.session_state.posts_data:
+            post = st.session_state.posts_data['current_post']
             try:
                 subreddit = reddit.subreddit(post['subreddit'])
                 if hasattr(subreddit, 'icon_img') and subreddit.icon_img:
@@ -505,12 +518,12 @@ with right_col:
                 st.markdown("Unable to fetch subreddit image")
 
         # Display user info if available
-        if 'current_user' in st.session_state:
+        if 'current_user' in st.session_state.posts_data:
             try:
-                user = reddit.redditor(st.session_state.current_user)
+                user = reddit.redditor(st.session_state.posts_data['current_user'])
                 if hasattr(user, 'icon_img') and user.icon_img:
-                    st.image(user.icon_img, width=150, caption=f"u/{st.session_state.current_user}")
-                st.markdown(f"**Username**: u/{st.session_state.current_user}")
+                    st.image(user.icon_img, width=150, caption=f"u/{st.session_state.posts_data['current_user']}")
+                st.markdown(f"**Username**: u/{st.session_state.posts_data['current_user']}")
             except:
                 st.markdown("Unable to fetch user image")
         
