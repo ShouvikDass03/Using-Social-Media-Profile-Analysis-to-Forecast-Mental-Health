@@ -230,6 +230,26 @@ st.markdown("""
             margin: 10px 0;
             text-align: center;
         }
+        .post-box {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+        }
+        .post-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #1e1e1e;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .post-content {
+            color: #444;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -304,6 +324,12 @@ with middle_col:
             transformed_post = transform_text(post_content)
             vector_input = tfidf.transform([transformed_post])
             result = model.predict(vector_input.toarray())[0]
+            
+            # Display post content in a formatted box
+            st.markdown("<div class='post-box'>", unsafe_allow_html=True)
+            st.markdown(f"<div class='post-title'>📝 {random_post.title}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='post-content'>{random_post.selftext}</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
             
             result_color = "red" if result == 1 else "green"
             result_text = "🚨 High Risk Indicators Detected" if result == 1 else "✅ No Significant Risk Detected"
