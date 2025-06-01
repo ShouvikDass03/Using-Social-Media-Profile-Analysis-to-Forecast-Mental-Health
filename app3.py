@@ -375,23 +375,50 @@ with middle_col:
             _ = subreddit.id
             random_post = None
             try:
-                random_post = subreddit.random()
-            except:
-                pass
-
-            if random_post is None:
-                posts = list(subreddit.hot(limit=20))
-                if posts:
-                    random_post = random.choice(posts)
+                # Collect posts from different categories
+                all_posts = []
+                
+                # Get hot posts
+                try:
+                    hot_posts = list(subreddit.hot(limit=20))
+                    all_posts.extend(hot_posts)
+                except:
+                    st.warning("Could not fetch hot posts")
+                
+                # Get new posts
+                try:
+                    new_posts = list(subreddit.new(limit=20))
+                    all_posts.extend(new_posts)
+                except:
+                    st.warning("Could not fetch new posts")
+                
+                # Get top posts of all time
+                try:
+                    top_posts = list(subreddit.top(time_filter='all', limit=20))
+                    all_posts.extend(top_posts)
+                except:
+                    st.warning("Could not fetch top posts")
+                
+                if all_posts:
+                    random_post = random.choice(all_posts)
                 else:
                     st.error(f"No posts found in r/{subreddit_name}")
                     st.stop()
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+            if random_post is None:
+                st.error(f"No posts found in r/{subreddit_name}")
+                st.stop()
 
             post_content = random_post.title + " " + random_post.selftext
             
-            # Store post details in session state
+            # Store post details in session state and clear previous user data
             if 'posts_data' not in st.session_state:
                 st.session_state.posts_data = {}
+            
+            # Clear previous user data when fetching new post
+            st.session_state.posts_data.pop('current_user', None)
             
             # Analysis
             transformed_post = transform_text(post_content)
