@@ -177,25 +177,47 @@ if not subreddit_name.isalnum():
 if st.button('Fetch and Predict from Reddit'):
     try:
         subreddit = reddit.subreddit(subreddit_name)
-        _ = subreddit.id
+        _ = subreddit.id  # Validates subreddit
 
-        random_post = subreddit.random() or random.choice(list(subreddit.hot(limit=20)))
+        random_post = None
+        try:
+            random_post = subreddit.random()
+        except:
+            pass  # silently fall back
 
+        if random_post is None:
+            posts = list(subreddit.hot(limit=20))
+            if posts:
+                random_post = random.choice(posts)
+            else:
+                st.error(f"No posts found in r/{subreddit_name}. Try another subreddit.")
+                st.stop()
+
+        # Extract and display post
         post_content = random_post.title + " " + random_post.selftext
+        post_url = f"https://www.reddit.com{random_post.permalink}"
         st.write("### Reddit Post Details:")
         st.write(f"**Subreddit**: r/{random_post.subreddit}")
         st.write(f"**Author**: u/{random_post.author}")
         st.write(f"**Content**: {post_content}")
-        st.write(f"**Link**: [View Post](https://www.reddit.com{random_post.permalink})")
+        st.write(f"**Link**: [View Post]({post_url})")
 
+        # Predict
         transformed_post = transform_text(post_content)
         vector_input = tfidf.transform([transformed_post])
         result = model.predict(vector_input.toarray())[0]
 
-        st.header("Suicidal Post" if result == 1 else "Non-suicidal Post")
+        st.header("🧠 Suicidal Post" if result == 1 else "✅ Non-suicidal Post")
 
+    except praw.exceptions.RedditAPIException as e:
+        st.error(f"Reddit API error: {e}")
     except Exception as e:
-        st.error(f"Error: {e}")
+        if '400' in str(e):
+            st.error("Bad request. Subreddit might not exist or contains invalid characters.")
+        elif '404' in str(e):
+            st.error("Subreddit not found. Please enter a valid subreddit name.")
+        else:
+            st.error(f"An unexpected error occurred: {e}")
 
 # UI Section: BDI-II Mapping
 st.title("🔍 BDI-II Estimate from Reddit User Posts")
