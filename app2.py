@@ -497,7 +497,7 @@ with middle_col:
             post_embeddings = embedder.encode(posts, convert_to_tensor=True)
             bdi_score = 0
             bdi_breakdown = []
-            SIMILARITY_THRESHOLD = 0.3  # Minimum similarity to consider a valid match
+            SIMILARITY_THRESHOLD = 0.2  # Minimum similarity to consider a valid match
             unmatched_questions = []
 
             for question, options in bdi_questions:
