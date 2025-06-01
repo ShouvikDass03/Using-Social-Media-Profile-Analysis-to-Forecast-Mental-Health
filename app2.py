@@ -249,19 +249,58 @@ if st.button("Analyze User for BDI-II Estimate"):
             bdi_score += score
             bdi_breakdown.append((question, score))
 
-        st.success(f"Estimated BDI-II Score: {bdi_score}/63")
-        if bdi_score <= 13:
-            st.info("Minimal depression")
-        elif bdi_score <= 19:
-            st.warning("Mild depression")
-        elif bdi_score <= 28:
-            st.warning("Moderate depression")
-        else:
-            st.error("Severe depression")
+        # Display total score with progress bar
+        st.subheader("🧠 Estimated BDI-II Score")
 
-        with st.expander("Show item-wise breakdown"):
-            for q, s in bdi_breakdown:
-                st.write(f"**{q}**: {s}")
+        # Determine severity and color
+        if bdi_score <= 13:
+            severity = "Minimal depression"
+            color = "green"
+        elif bdi_score <= 19:
+            severity = "Mild depression"
+            color = "yellow"
+        elif bdi_score <= 28:
+            severity = "Moderate depression"
+            color = "orange"
+        else:
+            severity = "Severe depression"
+            color = "red"
+
+        # Display progress bar and label
+        score_percent = int((bdi_score / 63) * 100)
+        st.markdown(
+            f"""
+            <div style="background-color:lightgray; border-radius:8px; padding:4px 8px; margin-bottom:12px;">
+                <div style="width:{score_percent}%; background-color:{color}; padding:6px; border-radius:4px; text-align:center; color:black;">
+                    Total Score: {bdi_score} / 63 &nbsp;—&nbsp; <strong>{severity}</strong>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        with st.expander("📊 Detailed BDI-II Item Breakdown"):
+            for question, score in bdi_breakdown:
+                if score == 0:
+                    color = "green"
+                elif score == 1:
+                    color = "yellow"
+                elif score == 2:
+                    color = "orange"
+                else:
+                    color = "red"
+
+                st.markdown(f"**{question}**")
+                st.markdown(
+                    f"""
+                    <div style="background-color:lightgray; border-radius:8px; padding:4px 8px; margin-bottom:8px;">
+                        <div style="width:{(score+1)*25}%; background-color:{color}; padding:4px; border-radius:4px; text-align:center; color:black;">
+                            Score: {score} / 3
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
     except Exception as e:
         st.error(f"Error analyzing user: {e}")
