@@ -350,11 +350,13 @@ with left_col:
 with middle_col:
     # Subreddit Analysis Section
     st.markdown('<div class="section-title">🔍 Subreddit Post Analysis</div>', unsafe_allow_html=True)
-    subreddit_name = st.text_input("Enter subreddit name", value='AskReddit', key='subreddit_input').strip().replace(" ", "")
     
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        analyze_button = st.button('Fetch and predict from Reddit')
+    # Create a row for input and button
+    input_col, button_col = st.columns([3, 1])
+    with input_col:
+        subreddit_name = st.text_input("Enter subreddit name", value='AskReddit', key='subreddit_input').strip().replace(" ", "")
+    with button_col:
+        analyze_button = st.button('Fetch and predict')
 
     if analyze_button:
         try:
@@ -488,31 +490,33 @@ with middle_col:
 
 # Right Column - Images and Additional Info
 with right_col:
-    st.markdown('<div class="block">', unsafe_allow_html=True)
-    
-    # Display subreddit info if available
-    if 'current_post' in st.session_state:
-        post = st.session_state.current_post
-        try:
-            subreddit = reddit.subreddit(post['subreddit'])
-            if hasattr(subreddit, 'icon_img') and subreddit.icon_img:
-                st.image(subreddit.icon_img, width=150, caption=f"r/{post['subreddit']}")
-            st.markdown(f"""
-            **Subreddit**: r/{post['subreddit']}  
-            **Author**: u/{post['author']}  
-            [View Post]({post['url']})
-            """)
-        except:
-            st.markdown("Unable to fetch subreddit image")
+    # Only show content if there's data to display
+    if 'current_post' in st.session_state or 'current_user' in st.session_state:
+        st.markdown('<div class="block">', unsafe_allow_html=True)
+        
+        # Display subreddit info if available
+        if 'current_post' in st.session_state:
+            post = st.session_state.current_post
+            try:
+                subreddit = reddit.subreddit(post['subreddit'])
+                if hasattr(subreddit, 'icon_img') and subreddit.icon_img:
+                    st.image(subreddit.icon_img, width=150, caption=f"r/{post['subreddit']}")
+                st.markdown(f"""
+                **Subreddit**: r/{post['subreddit']}  
+                **Author**: u/{post['author']}  
+                [View Post]({post['url']})
+                """)
+            except:
+                st.markdown("Unable to fetch subreddit image")
 
-    # Display user info if available
-    if 'current_user' in st.session_state:
-        try:
-            user = reddit.redditor(st.session_state.current_user)
-            if hasattr(user, 'icon_img') and user.icon_img:
-                st.image(user.icon_img, width=150, caption=f"u/{st.session_state.current_user}")
-            st.markdown(f"**Username**: u/{st.session_state.current_user}")
-        except:
-            st.markdown("Unable to fetch user image")
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+        # Display user info if available
+        if 'current_user' in st.session_state:
+            try:
+                user = reddit.redditor(st.session_state.current_user)
+                if hasattr(user, 'icon_img') and user.icon_img:
+                    st.image(user.icon_img, width=150, caption=f"u/{st.session_state.current_user}")
+                st.markdown(f"**Username**: u/{st.session_state.current_user}")
+            except:
+                st.markdown("Unable to fetch user image")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
