@@ -499,20 +499,36 @@ with middle_col:
             bdi_breakdown = []
             SIMILARITY_THRESHOLD = 0.1  # Minimum similarity to consider a valid match
             unmatched_questions = []
+            top_contributing_posts = []  # To hold (question, score, top posts)
 
             for question, options in bdi_questions:
                 option_embeddings = embedder.encode(options, convert_to_tensor=True)
-                avg_similarities = torch.mean(util.cos_sim(post_embeddings, option_embeddings), dim=0)  # [4]
-
+                sims = util.cos_sim(post_embeddings, option_embeddings)  # shape: [num_posts, 4]
+            
+                avg_similarities = torch.mean(sims, dim=0)  # average over posts for each option
                 max_sim = torch.max(avg_similarities).item()
+            
                 if max_sim < SIMILARITY_THRESHOLD:
-                    score = 0  # Not enough relevant content, assign neutral score
+                    score = 0
                     unmatched_questions.append(question)
+                    contributing_posts = []
                 else:
                     score = torch.argmax(avg_similarities).item()
-
+            
+                    # Find top posts that contributed to this option score
+                    # Take post similarities for the chosen option index
+                    option_idx = score
+                    post_sims = sims[:, option_idx]
+            
+                    # Get indices of top 3 posts (or fewer if less available)
+                    top_post_indices = torch.topk(post_sims, k=min(3, len(posts))).indices.tolist()
+            
+                    # Collect the actual posts
+                    contributing_posts = [posts[i] for i in top_post_indices]
+            
                 bdi_score += score
                 bdi_breakdown.append((question, score))
+                top_contributing_posts.append((question, score, contributing_posts))
 
             # Determine severity and color
             if bdi_score <= 13:
@@ -558,6 +574,16 @@ with middle_col:
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+
+                with st.expander("View Top Contributing Posts per Question"):
+                    for question, score, posts_list in top_contributing_posts:
+                        st.markdown(f"### {question} — Score: {score}/3")
+                        if posts_list:
+                            for i, post in enumerate(posts_list, start=1):
+                                st.markdown(f"**Post {i}:** {post[:300]}{'...' if len(post) > 300 else ''}")
+                        else:
+                            st.write("_No strongly related posts found for this question._")
+                        st.markdown("---")
 
             if unmatched_questions:
                 with st.expander("Skipped BDI-II Questions (no relevant content found)"):
