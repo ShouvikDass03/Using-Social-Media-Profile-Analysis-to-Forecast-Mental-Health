@@ -179,7 +179,10 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
     <style>
-        .main {padding: 2rem;}
+        .main {
+            padding: 0;
+            margin: 0;
+        }
         .block {
             background-color: white;
             padding: 20px;
@@ -200,41 +203,25 @@ st.markdown("""
             text-align: center;
             margin-bottom: 2rem;
         }
-        .description {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+        .stButton>button {
+            width: 100%;
+            background-color: #FF4B4B;
+            color: white;
         }
-        .warning {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
+        .stButton>button:hover {
+            background-color: #FF3333;
         }
-        .result-box {
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
+        div[data-testid="stVerticalBlock"] {
+            gap: 0;
+            padding: 0;
         }
-        .profile-image {
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
-        }
-        .metric-box {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: center;
+        div[class*="stMarkdown"] {
+            padding: 0;
         }
         .post-box {
-            background-color: white;
+            background-color: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
-            border: 1px solid #ddd;
             margin: 10px 0;
         }
         .post-title {
@@ -262,7 +249,6 @@ left_col, middle_col, right_col = st.columns([1, 2, 1])
 
 # Left Column - Project Description and Disclaimers
 with left_col:
-    st.markdown('<div class="block">', unsafe_allow_html=True)
     st.markdown("### About the Project")
     st.markdown("""
     This system uses advanced machine learning algorithms to analyze social media content for potential mental health indicators. It provides two main functionalities:
@@ -283,12 +269,10 @@ with left_col:
     - Seek immediate professional help
     </div>
     """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # Middle Column - Search Functionalities
 with middle_col:
     # Subreddit Analysis Section
-    st.markdown('<div class="block">', unsafe_allow_html=True)
     st.subheader("🔍 Subreddit Post Analysis")
     subreddit_name = st.text_input("Enter subreddit name", value='AskReddit').strip().replace(" ", "")
     
@@ -342,10 +326,8 @@ with middle_col:
 
         except Exception as e:
             st.error(f"Error: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
 
     # BDI-II Analysis Section
-    st.markdown('<div class="block">', unsafe_allow_html=True)
     st.subheader("📊 User BDI-II Analysis")
     reddit_user = st.text_input("Enter Reddit username")
     
@@ -423,7 +405,6 @@ with middle_col:
 
         except Exception as e:
             st.error(f"Error analyzing user: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # Right Column - Images and Additional Info
 with right_col:
