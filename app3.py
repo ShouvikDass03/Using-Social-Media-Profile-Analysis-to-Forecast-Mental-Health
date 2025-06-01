@@ -39,10 +39,15 @@ reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agen
 
 # Initialize the SentenceTransformer model
 try:
-    embedder = SentenceTransformer('all-MiniLM-L6-v2')
-    embedder = embedder.to_empty(device=device)  # Use to_empty() instead of to()
+    model_name = 'all-MiniLM-L6-v2'
+    embedder = SentenceTransformer(model_name)
+    embedder = embedder.to(device)
+    embedder.eval()
 except Exception as e:
     st.error(f"Error initializing SentenceTransformer: {str(e)}")
+    st.error("Detailed error information for debugging:")
+    st.error(f"Device: {device}")
+    st.error(f"PyTorch version: {torch.__version__}")
     embedder = None
 
 # BDI-II Questions List
