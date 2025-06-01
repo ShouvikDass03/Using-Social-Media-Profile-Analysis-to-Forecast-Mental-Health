@@ -71,7 +71,6 @@ with st.container():
                 else:
                     st.error(f"No posts found in r/{subreddit_name}. Try another subreddit.")
                     st.stop()
-            random_post = subreddit.random() or random.choice(list(subreddit.hot(limit=20)))
             post_content = random_post.title + " " + random_post.selftext
             st.write(f"**Subreddit**: r/{random_post.subreddit}")
             st.write(f"**Author**: u/{random_post.author}")
