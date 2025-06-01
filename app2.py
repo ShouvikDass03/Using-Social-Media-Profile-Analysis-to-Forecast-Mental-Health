@@ -575,15 +575,15 @@ with middle_col:
                     </div>
                     """, unsafe_allow_html=True)
 
-                with st.expander("View Top Contributing Posts per Question"):
-                    for question, score, posts_list in top_contributing_posts:
-                        st.markdown(f"### {question} — Score: {score}/3")
-                        if posts_list:
-                            for i, post in enumerate(posts_list, start=1):
-                                st.markdown(f"**Post {i}:** {post[:300]}{'...' if len(post) > 300 else ''}")
-                        else:
-                            st.write("_No strongly related posts found for this question._")
-                        st.markdown("---")
+            with st.expander("View Top Contributing Posts per Question"):
+                for question, score, posts_list in top_contributing_posts:
+                    st.markdown(f"### {question} — Score: {score}/3")
+                    if posts_list:
+                        for i, post in enumerate(posts_list, start=1):
+                            st.markdown(f"**Post {i}:** {post[:300]}{'...' if len(post) > 300 else ''}")
+                    else:
+                        st.write("_No strongly related posts found for this question._")
+                    st.markdown("---")
 
             if unmatched_questions:
                 with st.expander("Skipped BDI-II Questions (no relevant content found)"):
