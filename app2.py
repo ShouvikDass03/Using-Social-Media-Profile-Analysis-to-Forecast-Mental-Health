@@ -79,6 +79,21 @@ embedder = load_sentence_transformer('all-MiniLM-L6-v2')
 if embedder is None:
     st.error("Failed to initialize the sentence transformer model. Some functionality may be limited.")
 
+# Predefined list of popular subreddits
+popular_subreddits = [
+    # Mental Health & Psychology-Related Subreddits
+    "depression", "Anxiety", "socialanxiety", "SuicideWatch", "depression_help", "OCD", "bipolar", "BPD", "mentalhealth", "psychotherapy", "KindVoice", "lonely", "offmychest", "Vent", "ptsd", "CPTSD", "GriefSupport", "grief",
+
+    # Emotional Expression Subreddits
+    "TrueOffMyChest", "confession", "decidingtobebetter", "self", "MMFB",
+
+    # Neutral/Baseline Subreddits
+    "AskReddit", "AskScience", "TodayILearned", "Showerthoughts", "worldnews", "news", "technology", "science", "funny", "movies", "books", "pics",
+
+    # Mixed Mental Health & Personal Development
+    "GetMotivated", "productivity", "casualconversation", "simpleliving", "ZenHabits"
+]
+
 # BDI-II Questions List
 bdi_questions = [
     ("Sadness", [
@@ -375,18 +390,17 @@ with left_col:
 with middle_col:
     # Subreddit Analysis Section
     st.markdown('<div class="section-title">🔍 Subreddit Post Analysis</div>', unsafe_allow_html=True)
-    subreddit_name = st.text_input("Enter subreddit name", value='random', key='subreddit_input').strip().replace(" ", "")
+    subreddit_name = st.text_input("Enter subreddit name (or type 'random')", value='random', key='subreddit_input').strip().replace(" ", "")
     analyze_button = st.button('Fetch and predict')
 
     if analyze_button:
         try:
             if subreddit_name == 'random':
-                subreddit = reddit.random_subreddit()
-                subreddit_name = subreddit.display_name
-            else:
-                subreddit = reddit.subreddit(subreddit_name)
+                subreddit_name = random.choice(popular_subreddits)
                 
+            subreddit = reddit.subreddit(subreddit_name)                
             _ = subreddit.id
+            
             random_post = None
             try:
                 # Collect posts from different categories
