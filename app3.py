@@ -36,7 +36,14 @@ def transform_text(text):
 
 # Reddit and Embedding Setup
 reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent)
-embedder = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Initialize the SentenceTransformer model
+try:
+    embedder = SentenceTransformer('all-MiniLM-L6-v2')
+    embedder = embedder.to_empty(device=device)  # Use to_empty() instead of to()
+except Exception as e:
+    st.error(f"Error initializing SentenceTransformer: {str(e)}")
+    embedder = None
 
 # BDI-II Questions List
 bdi_questions = [
