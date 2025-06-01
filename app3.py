@@ -256,14 +256,22 @@ st.markdown("""
             transition: all 0.3s ease;
             margin: 1rem 0;
         }
-        .stButton > button:hover {
+        .stButton > button:not(:disabled):hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(255, 75, 75, 0.3);
             background: linear-gradient(135deg, #FF3333 0%, #FF2929 100%);
         }
-        .stButton > button:active {
+        .stButton > button:active, .stButton > button:focus {
             transform: translateY(0);
             box-shadow: 0 2px 5px rgba(255, 75, 75, 0.2);
+            background: linear-gradient(135deg, #FF4B4B 0%, #FF3333 100%);
+        }
+        .stButton > button:disabled {
+            background: linear-gradient(135deg, #FF4B4B 0%, #FF3333 100%);
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         /* Input field styling */
         .stTextInput > div > div > input {
