@@ -377,40 +377,29 @@ with middle_col:
             if 'posts_data' not in st.session_state:
                 st.session_state.posts_data = {}
             
-            st.session_state.posts_data['current_post'] = {
-                'subreddit': str(random_post.subreddit),
-                'author': str(random_post.author),
-                'content': random_post.selftext,
-                'title': random_post.title,
-                'url': f"https://www.reddit.com{random_post.permalink}"
-            }
-
             # Analysis
             transformed_post = transform_text(post_content)
             vector_input = tfidf.transform([transformed_post])
             result = model.predict(vector_input.toarray())[0]
             
-            # Display post content in a formatted box
-            st.markdown(f"<div class='post-title'>📝 {random_post.title}</div>", unsafe_allow_html=True)
-            st.markdown(f"<div class='post-content'>{random_post.selftext}</div>", unsafe_allow_html=True)
-            
-            result_color = "red" if result == 1 else "green"
-            result_text = "🚨 High Risk Indicators Detected" if result == 1 else "✅ No Significant Risk Detected"
-            
-            st.markdown(f"""
-            <div class="result-box" style="background-color: {'#ffe6e6' if result == 1 else '#e6ffe6'}">
-                <h3 style="color: {result_color}; text-align: center;">{result_text}</h3>
-            </div>
-            """, unsafe_allow_html=True)
+            st.session_state.posts_data['current_post'] = {
+                'subreddit': str(random_post.subreddit),
+                'author': str(random_post.author),
+                'content': random_post.selftext,
+                'title': random_post.title,
+                'url': f"https://www.reddit.com{random_post.permalink}",
+                'risk_result': result
+            }
+
+            # Display post content and result
+            display_post_and_result(st.session_state.posts_data['current_post'])
 
         except Exception as e:
             st.error(f"Error: {e}")
 
     # Display existing post if available
     elif 'posts_data' in st.session_state and 'current_post' in st.session_state.posts_data:
-        post = st.session_state.posts_data['current_post']
-        st.markdown(f"<div class='post-title'>📝 {post['title']}</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='post-content'>{post['content']}</div>", unsafe_allow_html=True)
+        display_post_and_result(st.session_state.posts_data['current_post'])
 
     # BDI-II Analysis Section
     st.subheader("📊 User BDI-II Analysis")
@@ -497,6 +486,7 @@ with middle_col:
 with right_col:
     # Only show content if there's data to display
     if 'posts_data' in st.session_state and ('current_post' in st.session_state.posts_data or 'current_user' in st.session_state.posts_data):
+        st.markdown('<div class="block">', unsafe_allow_html=True)
         
         # Display subreddit info if available
         if 'current_post' in st.session_state.posts_data:
@@ -523,3 +513,22 @@ with right_col:
             except:
                 st.markdown("Unable to fetch user image")
         
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# Helper function to display post and result consistently
+def display_post_and_result(post_data):
+    st.markdown("<div class='post-box'>", unsafe_allow_html=True)
+    st.markdown(f"<div class='post-title'>📝 {post_data['title']}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='post-content'>{post_data['content']}</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    if 'risk_result' in post_data:
+        result = post_data['risk_result']
+        result_color = "red" if result == 1 else "green"
+        result_text = "🚨 High Risk Indicators Detected" if result == 1 else "✅ No Significant Risk Detected"
+        
+        st.markdown(f"""
+        <div class="result-box" style="background-color: {'#ffe6e6' if result == 1 else '#e6ffe6'}">
+            <h3 style="color: {result_color}; text-align: center;">{result_text}</h3>
+        </div>
+        """, unsafe_allow_html=True)
