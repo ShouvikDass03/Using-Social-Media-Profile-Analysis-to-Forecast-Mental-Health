@@ -390,10 +390,8 @@ with middle_col:
             result = model.predict(vector_input.toarray())[0]
             
             # Display post content in a formatted box
-            st.markdown("<div class='post-box'>", unsafe_allow_html=True)
             st.markdown(f"<div class='post-title'>📝 {random_post.title}</div>", unsafe_allow_html=True)
             st.markdown(f"<div class='post-content'>{random_post.selftext}</div>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
             
             result_color = "red" if result == 1 else "green"
             result_text = "🚨 High Risk Indicators Detected" if result == 1 else "✅ No Significant Risk Detected"
