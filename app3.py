@@ -13,6 +13,14 @@ from io import BytesIO
 import torch
 from torch import nn
 
+# Page Configuration
+st.set_page_config(
+    page_title="Mental Health Analysis System",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 # Downloads and Setup
 nltk.download('stopwords')
 nltk.download('punkt_tab')
@@ -182,14 +190,6 @@ bdi_questions = [
         "I have lost interest in sex completely"
     ])
 ]
-
-# Page Configuration
-st.set_page_config(
-    page_title="Mental Health Analysis System",
-    page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # Custom CSS
 st.markdown("""
