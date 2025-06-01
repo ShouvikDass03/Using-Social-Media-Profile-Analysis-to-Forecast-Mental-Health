@@ -10,9 +10,10 @@ import random
 
 # Downloads
 nltk.download('stopwords')
-nltk.download('punkt_tab')
+nltk.download('punkt')
 
-# Secrets (stored in .streamlit/secrets.toml)
+# Secrets
+device = "cpu"
 client_id = st.secrets["client_id"]
 client_secret = st.secrets["client_secret"]
 user_agent = st.secrets["user_agent"]
@@ -30,13 +31,51 @@ def transform_text(text):
     y = [ps.stem(i) for i in y if i not in stopwords.words('english') and i not in string.punctuation]
     return " ".join(y)
 
-# Reddit setup
+# Reddit and Embedding Setup
 reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent)
-
-# Sentence Transformer
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
 
-# BDI-II Full List
+# Styling
+st.set_page_config(page_title="Psychological State Analyzer", layout="wide")
+st.markdown("""
+    <style>
+        .main {background-color: #f5f5f5; padding: 2rem; border-radius: 10px;}
+        .block {padding: 1rem; margin-bottom: 2rem; background-color: #ffffff; border-radius: 10px; box-shadow: 0px 2px 4px rgba(0,0,0,0.1);}
+        .title {text-align: center; font-size: 2rem; margin-bottom: 2rem;}
+    </style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="main">', unsafe_allow_html=True)
+
+st.markdown("<div class='title'>🔍 Social Media Profile for Predicting the Psychological State</div>", unsafe_allow_html=True)
+
+# Subreddit Classifier
+with st.container():
+    st.markdown("<div class='block'>", unsafe_allow_html=True)
+    st.subheader("🔗 Reddit Post Suicide Classifier")
+    subreddit_name = st.text_input("Enter subreddit name", value='AskReddit').strip().replace(" ", "")
+    if st.button('Fetch and Predict from Reddit'):
+        try:
+            subreddit = reddit.subreddit(subreddit_name)
+            _ = subreddit.id
+            random_post = subreddit.random() or random.choice(list(subreddit.hot(limit=20)))
+            post_content = random_post.title + " " + random_post.selftext
+            st.write(f"**Subreddit**: r/{random_post.subreddit}")
+            st.write(f"**Author**: u/{random_post.author}")
+            st.write(f"**Content**: {post_content}")
+            st.write(f"**Link**: [View Post](https://www.reddit.com{random_post.permalink})")
+
+            transformed_post = transform_text(post_content)
+            vector_input = tfidf.transform([transformed_post])
+            result = model.predict(vector_input.toarray())[0]
+            st.markdown(f"<h3 style='color:{'red' if result == 1 else 'green'}'>\
+                {'🧠 Suicidal Post' if result == 1 else '✅ Non-suicidal Post'}\
+            </h3>", unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"Error: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# BDI-II Mapping
 bdi_questions = [
     ("Sadness", [
         "I do not feel sad",
@@ -166,141 +205,82 @@ bdi_questions = [
     ])
 ]
 
-# UI Section: Suicidal Classifier
-st.title("Social Media Profile for Predicting the Psychological State")
-
-subreddit_name = st.text_input("Enter subreddit name", value='AskReddit').strip().replace(" ", "")
-if not subreddit_name.isalnum():
-    st.error("Subreddit name must contain only letters and numbers.")
-    st.stop()
-
-if st.button('Fetch and Predict from Reddit'):
-    try:
-        subreddit = reddit.subreddit(subreddit_name)
-        _ = subreddit.id  # Validates subreddit
-
-        random_post = None
+with st.container():
+    st.markdown("<div class='block'>", unsafe_allow_html=True)
+    st.subheader("🧠 BDI-II Score Estimator from Reddit User")
+    reddit_user = st.text_input("Enter Reddit username")
+    if st.button("Analyze User for BDI-II Estimate"):
         try:
-            random_post = subreddit.random()
-        except:
-            pass  # silently fall back
-
-        if random_post is None:
-            posts = list(subreddit.hot(limit=20))
-            if posts:
-                random_post = random.choice(posts)
-            else:
-                st.error(f"No posts found in r/{subreddit_name}. Try another subreddit.")
+            redditor = reddit.redditor(reddit_user)
+            posts = [submission.title + " " + submission.selftext for submission in redditor.submissions.new(limit=25)]
+            if not posts:
+                st.error("No posts found for this user.")
                 st.stop()
 
-        # Extract and display post
-        post_content = random_post.title + " " + random_post.selftext
-        post_url = f"https://www.reddit.com{random_post.permalink}"
-        st.write("### Reddit Post Details:")
-        st.write(f"**Subreddit**: r/{random_post.subreddit}")
-        st.write(f"**Author**: u/{random_post.author}")
-        st.write(f"**Content**: {post_content}")
-        st.write(f"**Link**: [View Post]({post_url})")
+            post_embeddings = embedder.encode(posts, convert_to_tensor=True)
+            bdi_score = 0
+            bdi_breakdown = []
 
-        # Predict
-        transformed_post = transform_text(post_content)
-        vector_input = tfidf.transform([transformed_post])
-        result = model.predict(vector_input.toarray())[0]
+            for question, options in bdi_questions:
+                option_embeddings = embedder.encode(options, convert_to_tensor=True)
+                max_similarity = [0, 0, 0, 0]
+                for post_embed in post_embeddings:
+                    sims = util.cos_sim(post_embed, option_embeddings)[0]
+                    for i in range(4):
+                        max_similarity[i] = max(max_similarity[i], sims[i].item())
+                score = max(range(4), key=lambda i: max_similarity[i])
+                bdi_score += score
+                bdi_breakdown.append((question, score))
 
-        st.header("🧠 Suicidal Post" if result == 1 else "✅ Non-suicidal Post")
+            if bdi_score <= 13:
+                severity = "Minimal depression"
+                color = "green"
+            elif bdi_score <= 19:
+                severity = "Mild depression"
+                color = "yellow"
+            elif bdi_score <= 28:
+                severity = "Moderate depression"
+                color = "orange"
+            else:
+                severity = "Severe depression"
+                color = "red"
 
-    except praw.exceptions.RedditAPIException as e:
-        st.error(f"Reddit API error: {e}")
-    except Exception as e:
-        if '400' in str(e):
-            st.error("Bad request. Subreddit might not exist or contains invalid characters.")
-        elif '404' in str(e):
-            st.error("Subreddit not found. Please enter a valid subreddit name.")
-        else:
-            st.error(f"An unexpected error occurred: {e}")
-
-# UI Section: BDI-II Mapping
-st.title("🔍 BDI-II Estimate from Reddit User Posts")
-
-reddit_user = st.text_input("Enter Reddit username for BDI-II mapping")
-
-if st.button("Analyze User for BDI-II Estimate"):
-    try:
-        redditor = reddit.redditor(reddit_user)
-        posts = [submission.title + " " + submission.selftext for submission in redditor.submissions.new(limit=25)]
-
-        if not posts:
-            st.error("No posts found for this user.")
-            st.stop()
-
-        post_embeddings = embedder.encode(posts, convert_to_tensor=True)
-
-        bdi_score = 0
-        bdi_breakdown = []
-
-        for question, options in bdi_questions:
-            option_embeddings = embedder.encode(options, convert_to_tensor=True)
-            max_similarity = [0, 0, 0, 0]
-            for post_embed in post_embeddings:
-                sims = util.cos_sim(post_embed, option_embeddings)[0]
-                for i in range(4):
-                    max_similarity[i] = max(max_similarity[i], sims[i].item())
-            score = max(range(4), key=lambda i: max_similarity[i])
-            bdi_score += score
-            bdi_breakdown.append((question, score))
-
-        # Display total score with progress bar
-        st.subheader("🧠 Estimated BDI-II Score")
-
-        # Determine severity and color
-        if bdi_score <= 13:
-            severity = "Minimal depression"
-            color = "green"
-        elif bdi_score <= 19:
-            severity = "Mild depression"
-            color = "yellow"
-        elif bdi_score <= 28:
-            severity = "Moderate depression"
-            color = "orange"
-        else:
-            severity = "Severe depression"
-            color = "red"
-
-        # Display progress bar and label
-        score_percent = int((bdi_score / 63) * 100)
-        st.markdown(
-            f"""
-            <div style="background-color:lightgray; border-radius:8px; padding:4px 8px; margin-bottom:12px;">
-                <div style="width:{score_percent}%; background-color:{color}; padding:6px; border-radius:4px; text-align:center; color:black;">
-                    Total Score: {bdi_score} / 63 &nbsp;—&nbsp; <strong>{severity}</strong>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        with st.expander("📊 Detailed BDI-II Item Breakdown"):
-            for question, score in bdi_breakdown:
-                if score == 0:
-                    color = "green"
-                elif score == 1:
-                    color = "yellow"
-                elif score == 2:
-                    color = "orange"
-                else:
-                    color = "red"
-
-                st.markdown(f"**{question}**")
-                st.markdown(
-                    f"""
-                    <div style="background-color:lightgray; border-radius:8px; padding:4px 8px; margin-bottom:8px;">
-                        <div style="width:{(score+1)*25}%; background-color:{color}; padding:4px; border-radius:4px; text-align:center; color:black;">
-                            Score: {score} / 3
-                        </div>
+            score_percent = int((bdi_score / 63) * 100)
+            st.markdown(
+                f"""
+                <div style="background-color:lightgray; border-radius:8px; padding:4px 8px; margin-bottom:12px;">
+                    <div style="width:{score_percent}%; background-color:{color}; padding:6px; border-radius:4px; text-align:center; color:black;">
+                        Total Score: {bdi_score} / 63 — <strong>{severity}</strong>
                     </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-    except Exception as e:
-        st.error(f"Error analyzing user: {e}")
+            with st.expander("📊 Detailed BDI-II Item Breakdown"):
+                for question, score in bdi_breakdown:
+                    if score == 0:
+                        c = "green"
+                    elif score == 1:
+                        c = "yellow"
+                    elif score == 2:
+                        c = "orange"
+                    else:
+                        c = "red"
+                    st.markdown(f"**{question}**")
+                    st.markdown(
+                        f"""
+                        <div style="background-color:lightgray; border-radius:8px; padding:4px 8px; margin-bottom:8px;">
+                            <div style="width:{(score+1)*25}%; background-color:{c}; padding:4px; border-radius:4px; text-align:center; color:black;">
+                                Score: {score} / 3
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+        except Exception as e:
+            st.error(f"Error analyzing user: {e}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
