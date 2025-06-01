@@ -10,13 +10,15 @@ import random
 import requests
 from PIL import Image
 from io import BytesIO
+import torch
+from torch import nn
 
 # Downloads and Setup
 nltk.download('stopwords')
 nltk.download('punkt_tab')
 
-# Secrets
-device = "cpu"
+# Secrets and Device Setup
+device = "cpu"  # We'll stick with CPU for now
 client_id = st.secrets["client_id"]
 client_secret = st.secrets["client_secret"]
 user_agent = st.secrets["user_agent"]
@@ -38,17 +40,18 @@ def transform_text(text):
 reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent)
 
 # Initialize the SentenceTransformer model
-try:
-    model_name = 'all-MiniLM-L6-v2'
-    embedder = SentenceTransformer(model_name)
-    embedder = embedder.to(device)
-    embedder.eval()
-except Exception as e:
-    st.error(f"Error initializing SentenceTransformer: {str(e)}")
-    st.error("Detailed error information for debugging:")
-    st.error(f"Device: {device}")
-    st.error(f"PyTorch version: {torch.__version__}")
-    embedder = None
+@st.cache_resource
+def load_sentence_transformer(model_name):
+    try:
+        model = SentenceTransformer(model_name)
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {str(e)}")
+        return None
+
+embedder = load_sentence_transformer('all-MiniLM-L6-v2')
+if embedder is None:
+    st.error("Failed to initialize the sentence transformer model. Some functionality may be limited.")
 
 # BDI-II Questions List
 bdi_questions = [
@@ -191,76 +194,125 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
     <style>
-        .main {padding: 2rem;}
+        .main {
+            padding: 2rem;
+            margin: 0;
+        }
         .block {
             background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
         }
         .title {
             text-align: center;
             color: #2c3e50;
             font-size: 2.5rem;
-            margin-bottom: 1rem;
+            margin: 1.5rem 0;
             font-weight: bold;
         }
         .subtitle {
             color: #34495e;
             font-size: 1.2rem;
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
         }
-        .description {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin: 1.5rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #eee;
         }
+        /* Professional button styling */
+        .stButton > button {
+            width: auto;
+            min-width: 200px;
+            padding: 0.5rem 2rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: white;
+            background: linear-gradient(135deg, #FF4B4B 0%, #FF3333 100%);
+            border: none;
+            border-radius: 25px;
+            box-shadow: 0 2px 5px rgba(255, 75, 75, 0.2);
+            transition: all 0.3s ease;
+            margin: 1rem 0;
+        }
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 75, 75, 0.3);
+            background: linear-gradient(135deg, #FF3333 0%, #FF2929 100%);
+        }
+        .stButton > button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(255, 75, 75, 0.2);
+        }
+        /* Input field styling */
+        .stTextInput > div > div > input {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 2px solid #eee;
+            transition: all 0.3s ease;
+        }
+        .stTextInput > div > div > input:focus {
+            border-color: #FF4B4B;
+            box-shadow: 0 0 0 2px rgba(255, 75, 75, 0.1);
+        }
+        /* Container spacing */
+        div[data-testid="stVerticalBlock"] > div {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        /* Warning box styling */
         .warning {
             background-color: #fff3cd;
             color: #856404;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .result-box {
-            padding: 15px;
+            padding: 1.25rem;
             border-radius: 8px;
-            margin-top: 10px;
+            border-left: 5px solid #ffc107;
+            margin: 1.5rem 0;
         }
-        .profile-image {
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
-        }
-        .metric-box {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: center;
-        }
+        /* Post display styling */
         .post-box {
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            margin: 10px 0;
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border: 1px solid #e9ecef;
         }
         .post-title {
-            font-size: 1.2em;
-            font-weight: bold;
+            font-size: 1.3em;
+            font-weight: 600;
             color: #1e1e1e;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e9ecef;
         }
         .post-content {
             color: #444;
-            line-height: 1.5;
+            line-height: 1.6;
             white-space: pre-wrap;
+            font-size: 1.1em;
+            padding: 0.5rem 0;
+        }
+        /* Result box styling */
+        .result-box {
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        /* Column styling */
+        div[data-testid="column"] {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 0.75rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
     </style>
 """, unsafe_allow_html=True)
@@ -269,13 +321,12 @@ st.markdown("""
 st.markdown('<h1 class="title">Mental Health Analysis System</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Analyzing Social Media Content for Mental Health Indicators</p>', unsafe_allow_html=True)
 
-# Create three columns for the main layout
-left_col, middle_col, right_col = st.columns([1, 2, 1])
+# Create three columns with proper spacing
+left_col, middle_col, right_col = st.columns([1, 2, 1], gap="large")
 
 # Left Column - Project Description and Disclaimers
 with left_col:
-    st.markdown('<div class="block">', unsafe_allow_html=True)
-    st.markdown("### About the Project")
+    st.markdown('<div class="section-title">About the Project</div>', unsafe_allow_html=True)
     st.markdown("""
     This system uses advanced machine learning algorithms to analyze social media content for potential mental health indicators. It provides two main functionalities:
     
@@ -284,7 +335,7 @@ with left_col:
     2. **User BDI-II Assessment**: Estimates a user's BDI-II (Beck Depression Inventory-II) score based on their Reddit post history.
     """)
     
-    st.markdown("### Important Disclaimers")
+    st.markdown('<div class="section-title">Important Disclaimers</div>', unsafe_allow_html=True)
     st.markdown("""
     <div class="warning">
     ⚠️ This tool is for educational and research purposes only. It should not be used as a substitute for professional medical advice, diagnosis, or treatment.
@@ -295,16 +346,18 @@ with left_col:
     - Seek immediate professional help
     </div>
     """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # Middle Column - Search Functionalities
 with middle_col:
     # Subreddit Analysis Section
-    st.markdown('<div class="block">', unsafe_allow_html=True)
-    st.subheader("🔍 Subreddit Post Analysis")
-    subreddit_name = st.text_input("Enter subreddit name", value='AskReddit').strip().replace(" ", "")
+    st.markdown('<div class="section-title">🔍 Subreddit Post Analysis</div>', unsafe_allow_html=True)
+    subreddit_name = st.text_input("Enter subreddit name", value='AskReddit', key='subreddit_input').strip().replace(" ", "")
     
-    if st.button('Analyze Random Post'):
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        analyze_button = st.button('Analyze Random Post')
+
+    if analyze_button:
         try:
             subreddit = reddit.subreddit(subreddit_name)
             _ = subreddit.id
@@ -354,10 +407,8 @@ with middle_col:
 
         except Exception as e:
             st.error(f"Error: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
 
     # BDI-II Analysis Section
-    st.markdown('<div class="block">', unsafe_allow_html=True)
     st.subheader("📊 User BDI-II Analysis")
     reddit_user = st.text_input("Enter Reddit username")
     
@@ -435,7 +486,6 @@ with middle_col:
 
         except Exception as e:
             st.error(f"Error analyzing user: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # Right Column - Images and Additional Info
 with right_col:
