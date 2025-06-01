@@ -1,2 +1,2 @@
 # social-media-suicidal-post-detection
-Website Link - https://social-media-suicidal-post-detection-5gphyjqraizeqinfxdreha.streamlit.app
+Website Link - https://social-media-suicidal-post-detection-cpzyxypbamcktc7nyznvvx.streamlit.app
