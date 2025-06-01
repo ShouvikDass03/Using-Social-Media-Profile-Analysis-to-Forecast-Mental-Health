@@ -350,13 +350,8 @@ with left_col:
 with middle_col:
     # Subreddit Analysis Section
     st.markdown('<div class="section-title">🔍 Subreddit Post Analysis</div>', unsafe_allow_html=True)
-    
-    # Create a row for input and button
-    input_col, button_col = st.columns([3, 1])
-    with input_col:
-        subreddit_name = st.text_input("Enter subreddit name", value='AskReddit', key='subreddit_input').strip().replace(" ", "")
-    with button_col:
-        analyze_button = st.button('Fetch and predict')
+    subreddit_name = st.text_input("Enter subreddit name", value='AskReddit', key='subreddit_input').strip().replace(" ", "")
+    analyze_button = st.button('Fetch and predict')
 
     if analyze_button:
         try:
