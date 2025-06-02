@@ -615,10 +615,13 @@ with right_col:
         # Display user info if available
         if 'current_user' in st.session_state.posts_data:
             try:
-                user = reddit.redditor(st.session_state.posts_data['current_user'])
+                username = st.session_state.posts_data['current_user']
+                user = reddit.redditor(username)
                 if hasattr(user, 'icon_img') and user.icon_img:
-                    st.image(user.icon_img, width=150, caption=f"u/{st.session_state.posts_data['current_user']}")
-                st.markdown(f"**Username**: u/{st.session_state.posts_data['current_user']}")
+                    st.image(user.icon_img, width=150, caption=f"u/{username}")
+                st.markdown(f"""
+                **Username**: u/{username}  
+                [View Reddit Profile](https://www.reddit.com/user/{username})
+                """)
             except:
                 st.markdown("Unable to fetch user image")
-        
