@@ -45,9 +45,9 @@ def display_post_and_result(post_data):
         """, unsafe_allow_html=True)
 
 device = "cpu"
-client_id = "LURJVZETI3YgItmr6hGXOQ"
-client_secret = "4np46U4ZtpxEZBki776zxOu6nFLkkg"
-user_agent = "Yu_Ishigami03"
+client_id = st.secrets["client_id"]
+client_secret = st.secrets["client_secret"]
+user_agent = st.secrets["user_agent"]
 
 tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
 model = pickle.load(open('model.pkl', 'rb'))
