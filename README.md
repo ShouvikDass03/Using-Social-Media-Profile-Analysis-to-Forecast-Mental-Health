@@ -1,2 +1,2 @@
-# social-media-suicidal-post-detection
-Website Link - https://social-media-suicidal-post-detection-oaweqecjakln4vafypxkxj.streamlit.app
+# Using-Social-Media-Profile-Analysis-to-Forecast-Mental-Health
+Website Link - https://using-social-media-profile-analysis-to-forecast-mental-health.streamlit.app
